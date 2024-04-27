@@ -39,15 +39,18 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
+    // ...
+
     return Scaffold(
       body: Column(
         children: [
-          Text('Turn my swag on!'),
+          Text('A random AWESOME idea:'),
           Text(appState.current.asLowerCase),
 
+          // ↓ Add this.
           ElevatedButton(
             onPressed: () {
-               appState.getNext();
+              appState.getNext();
             },
             child: Text('Next'),
           ),
