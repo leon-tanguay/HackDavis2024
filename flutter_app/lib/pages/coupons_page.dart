@@ -28,28 +28,47 @@ class _RestaurantCouponPageState extends State
     {'title': 'Login', 'icon': Icons.login},
   ];
 
-  List<String> coupons = [];
+  List<Coupon> coupons = [];
   List<int> discounts = [];
 
   @override
   void initState() {
     super.initState();
+    _loadCoupons();
+    _setNextIdFromDatabase();
   }
 
-  void verifyCoupon(String couponCode) {
-    // Simulate coupon verification process
-    // Here you can implement actual logic to verify the coupon code
-    // For demo purpose, we'll just print the coupon code as verified
-    print('Coupon Verified: $couponCode');
-  }
-
-  void addCoupon(String couponCode, int discount) {
-    // Add the new coupon to the list
+   Future<void> _setNextIdFromDatabase() async {
+    // Fetch the count of coupons from the database using CouponDatabaseHelper
+    int count = await CouponDatabaseHelper.getCouponsCount();
+    // Set _nextId to the count retrieved from the database
     setState(() {
-      coupons.add(couponCode);
-      discounts.add(discount);
+      _nextId = count;
     });
   }
+
+  void deleteCoupon(Coupon coupon) async {
+  // Delete coupon from database
+  await CouponDatabaseHelper.deleteCoupon(coupon.id!);
+  // Reload coupons after deletion
+  _loadCoupons();
+}
+
+
+  Future<void> _loadCoupons() async {
+  // Retrieve coupons from the database
+  List<Coupon> loadedCoupons = await CouponDatabaseHelper.getCoupons();
+  // Update the state with the loaded coupons
+  setState(() {
+    coupons = loadedCoupons;
+  });
+}
+
+  void verifyCoupon(Coupon coupon) {
+  // Your verification logic here
+  // For example:
+  print('Coupon Verified: ${coupon.code}');
+}
 
 
   @override
@@ -85,22 +104,23 @@ class _RestaurantCouponPageState extends State
   }
 
   Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        return CouponGrid(
-          coupons: coupons,
-          discounts: discounts,
-          onPressed: verifyCoupon,
-        );
-      case 1: 
-        return MapScreen();
-      case 2:
-        return LoginScreen();
-      // You can add cases for other pages if needed
-      default:
-        return SizedBox.shrink();
-    }
+  switch (_currentIndex) {
+    case 0:
+      return CouponGrid(
+        coupons: coupons, // Pass the list of Coupon objects
+        onPressed: verifyCoupon,
+        onDeletePressed: deleteCoupon,
+      );
+    case 1: 
+      return MapScreen();
+    case 2:
+      return LoginScreen();
+    // You can add cases for other pages if needed
+    default:
+      return SizedBox.shrink();
   }
+}
+
 
 Future<void> _showAddCouponDialog(BuildContext context) async {
   String couponCode = '';
@@ -146,6 +166,7 @@ Future<void> _showAddCouponDialog(BuildContext context) async {
                   ),
                 );
                 Navigator.of(context).pop();
+                _loadCoupons();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text('Please enter valid coupon details.'),
@@ -169,11 +190,11 @@ Future<void> _showAddCouponDialog(BuildContext context) async {
 }
 
 class CouponGrid extends StatelessWidget {
-  final List<String> coupons;
-  final List<int> discounts;
-  final Function(String) onPressed;
+  final List<Coupon> coupons; // Updated to use Coupon objects
+  final Function(Coupon) onPressed; // Updated to pass Coupon object instead of string
+  final Function(Coupon) onDeletePressed; // Callback for delete button
 
-  const CouponGrid({Key? key, required this.coupons, required this.discounts, required this.onPressed}) : super(key: key);
+  const CouponGrid({Key? key, required this.coupons, required this.onPressed, required this.onDeletePressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -185,13 +206,14 @@ class CouponGrid extends StatelessWidget {
       ),
       itemCount: coupons.length,
       itemBuilder: (context, index) {
-        final couponCode = coupons[index];
-        final discount = discounts[index];
+        final coupon = coupons[index]; // Get the Coupon object at the current index
         return CouponTile(
-          couponCode: couponCode,
-          discount: discount,
+          coupon: coupon, // Pass the Coupon object to CouponTile
           onPressed: () {
-            onPressed(couponCode);
+            onPressed(coupon); // Pass the Coupon object to the onPressed callback
+          },
+          onDeletePressed: () {
+            onDeletePressed(coupon); // Pass the Coupon object to the onDeletePressed callback
           },
         );
       },
@@ -199,12 +221,13 @@ class CouponGrid extends StatelessWidget {
   }
 }
 
-class CouponTile extends StatelessWidget {
-  final String couponCode;
-  final int discount;
-  final VoidCallback onPressed;
 
-  const CouponTile({Key? key, required this.couponCode, required this.discount, required this.onPressed}) : super(key: key);
+class CouponTile extends StatelessWidget {
+  final Coupon coupon; // Updated to use Coupon object instead of string and int
+  final VoidCallback onPressed;
+  final VoidCallback onDeletePressed; // Callback for delete button
+
+  const CouponTile({Key? key, required this.coupon, required this.onPressed, required this.onDeletePressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -219,13 +242,23 @@ class CouponTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Coupon Code: $couponCode',
+                'Coupon Code: ${coupon.code}', // Accessing code property of the Coupon object
                 style: TextStyle(fontSize: 16.0),
               ),
               SizedBox(height: 8.0),
               Text(
-                'Discount: $discount% off',
+                'Description: ${coupon.description}', // Accessing description property of the Coupon object
                 style: TextStyle(fontSize: 14.0, color: Colors.grey),
+              ),
+              SizedBox(height: 8.0),
+              Text(
+                'Restaurant ID: ${coupon.restaurantID}', // Accessing restaurantID property of the Coupon object
+                style: TextStyle(fontSize: 14.0, color: Colors.grey),
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: onDeletePressed, // Trigger delete callback
+                child: Text('Delete'),
               ),
             ],
           ),
