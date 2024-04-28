@@ -5,10 +5,19 @@ import 'package:latlong2/latlong.dart' as latLng;
 import 'pages/coupons_page.dart';
 import 'pages/map_page.dart';
 import 'pages/login_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+
+
+void main() async{
+  await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+);
   runApp(MyApp());
 }
+
+
 
 class MyApp extends StatelessWidget {
   @override
