@@ -3,6 +3,11 @@ allprojects {
         google()
         mavenCentral()
     }
+    dependencies {
+    classpath 'com.android.tools.build:gradle:4.1.0' // Ensure version compatibility
+    classpath 'com.google.gms:google-services:4.3.3' // Check for the latest version
+    // Other classpath definitions...
+  }
 }
 
 rootProject.buildDir = '../build'

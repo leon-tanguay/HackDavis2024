@@ -14,7 +14,6 @@ class _BottomBarState extends State<BottomBar> {
   final List<Map<String, dynamic>> _pages = [
     {'title': 'Coupons', 'icon': Icons.local_offer},
     {'title': 'Map', 'icon': Icons.map},
-    {'title': 'Login', 'icon': Icons.login},
   ];
 
   @override

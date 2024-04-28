@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services' version '4.4.1' apply false
 }
 
 def localProperties = new Properties()
@@ -20,6 +21,15 @@ if (flutterVersionCode == null) {
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services' // Apply the Google services plugin
+
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+  implementation 'com.google.firebase:firebase-analytics'
+  // Other dependencies...
 }
 
 android {
@@ -63,5 +73,3 @@ android {
 flutter {
     source '../..'
 }
-
-dependencies {}

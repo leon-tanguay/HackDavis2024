@@ -1,87 +1,182 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latLng;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-class LoginScreen extends StatefulWidget {
+bool _isLoading = false;
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key:key);
+
+  final String title;
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
+class _MyHomePageState extends State<MyHomePage>{
 
-class _LoginScreenState extends State
-{
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
+   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  int _success = 1;
+  String _userEmail = "";
 
-  void _login() {
-    setState(() {
-      _isLoading = true;
-    });
+  void _signIn() async {
+  setState(() {
+    _isLoading = true;  // Start loading
+  });
 
-    // Simulated authentication process (replace with actual logic)
-    String username = _usernameController.text;
-    String password = _passwordController.text;
+  try {
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: _emailController.text, 
+      password: _passwordController.text
+    );
+    User? user = userCredential.user;
 
-    // Simulated validation (replace with actual validation logic)
-    bool isValidCredentials = validateCredentials(username, password);
+    if (user != null) {
+      setState(() {
+        _success = 2;
+        _userEmail = user.email!;
+        Navigator.of(context).pushReplacementNamed('/dashboard');  // Redirect to dashboard
 
-    if (isValidCredentials) {
-      // Print "login valid" upon successful validation
-      print('Login valid');
+      });
     } else {
       setState(() {
-        _isLoading = false;
+        _success = 3;
       });
-      // Show error message or toast for invalid credentials
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Invalid username or password'),
-        backgroundColor: Colors.red,
-      ));
     }
+  } catch (e) {
+    setState(() {
+      _success = 3;
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;  // Stop loading regardless of the outcome
+    });
   }
+}
 
-  bool validateCredentials(String username, String password) {
-    // Simulated validation (replace with actual validation logic)
-    return username == 'admin' && password == 'password';
-  }
 
-  @override
-  Widget build(BuildContext context) {
+  @override 
+  Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32.0),
+      body:Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            child:Stack(
+              children:<Widget>[
+                Container(
+                    padding: EdgeInsets.fromLTRB(15,110,0,0),
+                    child:Text("LOGIN PAGE",
+                    style:TextStyle(
+                      fontSize:40,fontWeight: FontWeight.bold
+                    ))
+                )
+              ]
+            )
+          ),
+          Container(padding:EdgeInsets.only(top:35,left:20,right:30),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                ),
+                controller: _emailController,
+                decoration:InputDecoration(
+                  labelText:'EMAIL',
+                  labelStyle: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.bold,
+                    color:Colors.grey
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color:Colors.green),
+                  )
+                )
               ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
+              SizedBox(height:20,),
+                TextField(
+                  controller: _passwordController,
+                decoration:InputDecoration(
+                  labelText:'PASSWORD',
+                  labelStyle: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.bold,
+                    color:Colors.grey
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color:Colors.green),
+                  )
                 ),
                 obscureText: true,
               ),
-              SizedBox(height: 24.0),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                child: _isLoading
-                    ? CircularProgressIndicator()
-                    : Text('Login'),
+              SizedBox(height:5.0,),
+              Container(
+                alignment: Alignment.center,
+                padding:const EdgeInsets.symmetric(horizontal: 16),
+                child:Text(
+                  _success==1
+                  ? ''
+                  :(
+                    _success==2
+                    ? 'Successfully Signed In!' : 'Sign in failed'),
+                    style:TextStyle(color: _success == 2 ? Colors.green : (_success == 3 ? Colors.red : Colors.black),
+),
+                )
               ),
+              SizedBox(height:40,),
+              Container(
+                height: 40,
+                child: Material(
+                  borderRadius: BorderRadius.circular(20),
+                  shadowColor: Colors.greenAccent,
+                  color: Colors.black,
+                  elevation: 7,
+                  child: InkWell(
+                    onTap: _isLoading ? null : _signIn,  // Disable tap when loading
+                    child: Center(
+                      child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)  // Show loading spinner
+                        : Text(
+                            'LOGIN',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Montserrat',
+                            ),
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(height:15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/signup');
+                    },
+                    child:Text(
+                      "Don't have an account yet? Sign up!",
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontFamily: 'Montserrat',
+                        fontWeight: FontWeight.bold,
+                        decoration:TextDecoration.underline
+                      ),
+                    )
+                  )
+                ],
+              )
             ],
-          ),
-        ),
-      ),
+          )
+          )
+        ]
+      )
     );
   }
 }

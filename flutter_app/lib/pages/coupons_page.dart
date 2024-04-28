@@ -24,7 +24,6 @@ class _RestaurantCouponPageState extends State
   final List<Map<String, dynamic>> _pages = [
     {'title': 'Coupons', 'icon': Icons.local_offer},
     {'title': 'Map', 'icon': Icons.map},
-    {'title': 'Login', 'icon': Icons.login},
   ];
 
   List<Coupon> coupons = [];
@@ -139,7 +138,7 @@ class _RestaurantCouponPageState extends State
     case 1: 
       return MapScreen();
     case 2:
-      return LoginScreen();
+      return MyHomePage(title:"fslakjfljsdalf");
     // You can add cases for other pages if needed
     default:
       return SizedBox.shrink();
