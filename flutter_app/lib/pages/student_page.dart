@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/coupon_db_helper.dart';
 import '../widgets/coupon.dart';
 
-class RestaurantCouponPage extends StatefulWidget {
+class StudentPage extends StatefulWidget {
   @override
   _RestaurantCouponPageState createState() => _RestaurantCouponPageState();
 }

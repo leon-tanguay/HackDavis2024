@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latLng;
+import 'package:namer_app/pages/student_page.dart';
 import 'pages/coupons_page.dart';
 import 'pages/map_page.dart';
 import 'pages/login_page.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
       routes: <String, WidgetBuilder>{
         '/signup': (BuildContext context) => new SignupPage(),
         '/dashboard': (BuildContext context) => new RestaurantCouponPage(),
+        '/student': (BuildContext context) => new StudentPage()
       },
     );
   }

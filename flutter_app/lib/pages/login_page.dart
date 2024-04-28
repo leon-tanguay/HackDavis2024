@@ -59,87 +59,76 @@ class _MyHomePageState extends State<MyHomePage>{
   }
 }
 
-
-  @override 
-  Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body:Column(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            child:Stack(
-              children:<Widget>[
+            child: Stack(
+              children: <Widget>[
                 Container(
-                    padding: EdgeInsets.fromLTRB(15,110,0,0),
-                    child:Text("LOGIN PAGE",
-                    style:TextStyle(
-                      fontSize:40,fontWeight: FontWeight.bold
-                    ))
-                )
-              ]
-            )
+                  padding: EdgeInsets.fromLTRB(15, 110, 0, 0),
+                  child: Text("LOGIN PAGE",
+                      style: TextStyle(
+                          fontSize: 40, fontWeight: FontWeight.bold))),
+              ],
+            ),
           ),
-          Container(padding:EdgeInsets.only(top:35,left:20,right:30),
-          child: Column(
-            children: <Widget>[
-              TextField(
-                controller: _emailController,
-                decoration:InputDecoration(
-                  labelText:'EMAIL',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color:Colors.grey
+          Container(
+              padding: EdgeInsets.only(top: 35, left: 20, right: 30),
+              child: Column(
+                children: <Widget>[
+                  TextField(
+                      decoration: InputDecoration(
+                          labelText: 'EMAIL',
+                          labelStyle: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                          focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.green)))),
+                  SizedBox(
+                    height: 20,
                   ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color:Colors.green),
-                  )
-                )
-              ),
-              SizedBox(height:20,),
-                TextField(
-                  controller: _passwordController,
-                decoration:InputDecoration(
-                  labelText:'PASSWORD',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
-                    color:Colors.grey
+                  TextField(
+                    decoration: InputDecoration(
+                        labelText: 'PASSWORD',
+                        labelStyle: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.green))),
+                    obscureText: true,
                   ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color:Colors.green),
-                  )
-                ),
-                obscureText: true,
-              ),
-              SizedBox(height:5.0,),
-              Container(
-                alignment: Alignment.center,
-                padding:const EdgeInsets.symmetric(horizontal: 16),
-                child:Text(
-                  _success==1
-                  ? ''
-                  :(
-                    _success==2
-                    ? 'Successfully Signed In!' : 'Sign in failed'),
-                    style:TextStyle(color: _success == 2 ? Colors.green : (_success == 3 ? Colors.red : Colors.black),
-),
-                )
-              ),
-              SizedBox(height:40,),
-              Container(
-                height: 40,
-                child: Material(
-                  borderRadius: BorderRadius.circular(20),
-                  shadowColor: Colors.greenAccent,
-                  color: Colors.black,
-                  elevation: 7,
-                  child: InkWell(
-                    onTap: _isLoading ? null : _signIn,  // Disable tap when loading
-                    child: Center(
-                      child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)  // Show loading spinner
-                        : Text(
+                  SizedBox(
+                    height: 5.0,
+                  ),
+                  Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        '',
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      )),
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Container(
+                    height: 40,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(20),
+                      shadowColor: Colors.greenAccent,
+                      color: Colors.black,
+                      elevation: 7,
+                      child: InkWell(
+                        onTap: () {}, // Implement your sign-in logic here
+                        child: Center(
+                          child: Text(
                             'LOGIN',
                             style: TextStyle(
                               color: Colors.white,
@@ -147,36 +136,52 @@ class _MyHomePageState extends State<MyHomePage>{
                               fontFamily: 'Montserrat',
                             ),
                           ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-
-              SizedBox(height:15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/signup');
-                    },
-                    child:Text(
-                      "Don't have an account yet? Sign up!",
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontFamily: 'Montserrat',
-                        fontWeight: FontWeight.bold,
-                        decoration:TextDecoration.underline
-                      ),
-                    )
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).pushNamed('/signup');
+                        },
+                        child: Text(
+                          "Don't have an account yet? Sign up!",
+                          style: TextStyle(
+                              color: Colors.blueGrey,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).pushNamed('/student'); // Navigate to student_interface.dart
+                        },
+                        child: Text(
+                          "Continue as guest",
+                          style: TextStyle(
+                              color: Colors.blueGrey,
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline),
+                        ),
+                      )
+                    ],
                   )
                 ],
-              )
-            ],
-          )
-          )
-        ]
-      )
+              ))
+        ],
+      ),
     );
   }
 }
