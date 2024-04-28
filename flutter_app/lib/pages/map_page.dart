@@ -29,7 +29,9 @@ class MapScreen extends StatelessWidget {
                   minZoom: 0,
 	                maxZoom: 20,
               ),
-
+              MarkerLayerOptions(
+                markers: _buildMarkers(),
+              ),
               RichAttributionWidget(attributions: [
                 TextSourceAttribution("Stadia Maps",
                     onTap: () => launchUrl(Uri.parse("https://stadiamaps.com/")),
