@@ -47,6 +47,7 @@ class _RestaurantCouponPageState extends State
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
