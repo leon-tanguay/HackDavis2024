@@ -146,32 +146,17 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Map'),
-      ),
-      body: FlutterMap(
-        options: MapOptions(
-          initialCenter: LatLng(38.5449, -121.7405), // Coordinates of Davis, California
-          initialZoom: 12.0,
-        ),
+      body: Stack(
         children: [
-          TileLayerOptions(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            subdomains: ['a', 'b', 'c'],
-          ),
-          MarkerLayerOptions(
-            markers: [
-              Marker(
-                width: 80.0,
-                height: 80.0,
-                point: LatLng(38.5449, -121.7405), // Coordinates of Davis, California
-                builder: (ctx) => Container(
-                  child: Icon(
-                    Icons.location_pin,
-                    size: 40.0,
-                    color: Colors.red,
-                  ),
-                ),
+          FlutterMap(
+            options: MapOptions(
+              center: LatLng(51.509364, -0.128928),
+              zoom: 3.2,
+            ),
+            children: [
+              TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.app',
               ),
             ],
           ),
