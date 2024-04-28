@@ -56,22 +56,44 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/images/Logo.png',
+            height: 32,
+          ),
+          SizedBox(width: 8),
+          Text(
+            'Davis Deals',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      backgroundColor: Color(0xFFA8DAF9),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: 16.0),
+          child: IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              // Handle search action
+            },
+          ),
+        ),
+      ],
+    ),
+    body: SingleChildScrollView(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            child: Stack(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.fromLTRB(15, 110, 0, 0),
-                  child: Text("LOGIN PAGE",
-                      style: TextStyle(
-                          fontSize: 40, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
+            padding: EdgeInsets.fromLTRB(15, 20, 0, 0), // Adjusted padding
+            child: Text("LOGIN PAGE",
+                style: TextStyle(
+                    fontSize: 40, fontWeight: FontWeight.bold)),
           ),
           Container(
             padding: EdgeInsets.only(top: 35, left: 20, right: 30),
@@ -93,6 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 TextField(
                   controller: _passwordController,
+                  obscureText: true,
                   decoration: InputDecoration(
                       labelText: 'PASSWORD',
                       labelStyle: TextStyle(
@@ -101,89 +124,66 @@ class _MyHomePageState extends State<MyHomePage> {
                           color: Colors.grey),
                       focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.green))),
-                  obscureText: true,
-                ),
-                SizedBox(
-                  height: 5.0,
-                ),
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    '',
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
                 ),
                 SizedBox(
                   height: 40,
                 ),
-                Container(
-                  height: 40,
-                  child: Material(
-                    borderRadius: BorderRadius.circular(20),
-                    shadowColor: Colors.greenAccent,
-                    color: Colors.black,
-                    elevation: 7,
-                    child: InkWell(
-                      onTap: _signIn, // Call _signIn method on tap
-                      child: Center(
-                        child: Text(
-                          'LOGIN',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Montserrat',
-                          ),
+                Material(
+                  borderRadius: BorderRadius.circular(20),
+                  shadowColor: Colors.greenAccent,
+                  color: Colors.black,
+                  elevation: 7,
+                  child: InkWell(
+                    onTap: _signIn, // Call _signIn method on tap
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 40,
+                      child: Text(
+                        'LOGIN',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Montserrat',
                         ),
                       ),
                     ),
                   ),
                 ),
                 SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/signup');
-                      },
-                      child: Text(
-                        "Don't have an account yet? Sign up!",
-                        style: TextStyle(
-                            color: Colors.blueGrey,
-                            fontFamily: 'Montserrat',
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline),
-                      ),
-                    )
-                  ],
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/signup');
+                  },
+                  child: Text(
+                    "Don't have an account yet? Sign up!",
+                    style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontFamily: 'Montserrat',
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline),
+                  ),
                 ),
                 SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    InkWell(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => StudentPage()),
-                        );
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(12.0),
-                        child: Text('Go to Student Page'),
-                      ),
-                    )
-                  ],
+                InkWell(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => StudentPage()),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(12.0),
+                    child: Text('Go to Student Page'),
+                  ),
                 )
               ],
             ),
           )
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
 
