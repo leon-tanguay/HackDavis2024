@@ -31,7 +31,7 @@ class MapScreen extends StatelessWidget {
           FlutterMap(
             options: MapOptions(
               initialCenter: lat_lng.LatLng(38.5449, -121.7405),
-              initialZoom: 12.0,
+              initialZoom: 12.3,
               keepAlive: true 
             ),
             children: [
@@ -41,7 +41,7 @@ class MapScreen extends StatelessWidget {
                   additionalOptions: {
                     "api_key": apiKey
                   },
-                  minZoom: 0,
+                  minZoom: 6,
 	                maxZoom: 20,
               ),
               MarkerLayer(

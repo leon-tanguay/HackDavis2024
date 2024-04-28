@@ -1,25 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'map_page.dart';
-import 'login_page.dart';
-import '../widgets/bottom_bar.dart';
-import 'dart:math';
-import 'package:flutter/material.dart';
-import '../widgets/coupon_db_helper.dart';
-import '../widgets/coupon.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import './map_page.dart';
 
+class Coupon {
+  final String code;
+  final String description;
+  final int restaurantID;
+
+  Coupon({
+    required this.code,
+    required this.description,
+    required this.restaurantID,
+  });
+}
+
+class CouponService {
+  final CollectionReference couponsCollection =
+      FirebaseFirestore.instance.collection('Coupons');
+
+  Future<void> addCoupon(String title, String description, int restaurantID) async {
+    try {
+      await couponsCollection.add({
+        'Code': title,
+        'description': description,
+        'restaurantID': restaurantID,
+      });
+      print('Coupon added successfully!');
+    } catch (e) {
+      print('Error adding coupon: $e');
+    }
+  }
+
+  Future<void> deleteCoupon(String couponId) async {
+    try {
+      await couponsCollection.doc(couponId).delete();
+      print('Coupon deleted successfully!');
+    } catch (e) {
+      print('Error deleting coupon: $e');
+    }
+  }
+
+  Future<List<Coupon>> getAllCoupons() async {
+    try {
+      QuerySnapshot querySnapshot = await couponsCollection.get();
+      return querySnapshot.docs.map((doc) {
+        return Coupon(
+          code: doc['Code'],
+          description: doc['description'],
+          restaurantID: doc['restaurantID'],
+        );
+      }).toList();
+    } catch (e) {
+      print('Error getting coupons: $e');
+      return [];
+    }
+  }
+}
 
 class RestaurantCouponPage extends StatefulWidget {
   @override
   _RestaurantCouponPageState createState() => _RestaurantCouponPageState();
 }
 
-class _RestaurantCouponPageState extends State
-{
+class _RestaurantCouponPageState extends State {
   int _currentIndex = 0;
-  static int _nextId = 0;
 
   final List<Map<String, dynamic>> _pages = [
     {'title': 'Coupons', 'icon': Icons.local_offer},
@@ -27,47 +72,39 @@ class _RestaurantCouponPageState extends State
   ];
 
   List<Coupon> coupons = [];
-  List<int> discounts = [];
+
+  final CouponService _couponService = CouponService();
 
   @override
   void initState() {
     super.initState();
     _loadCoupons();
-    _setNextIdFromDatabase();
-  }
-
-   Future<void> _setNextIdFromDatabase() async {
-    // Fetch the count of coupons from the database using CouponDatabaseHelper
-    int count = await CouponDatabaseHelper.getCouponsCount();
-    // Set _nextId to the count retrieved from the database
-    setState(() {
-      _nextId = count;
-    });
   }
 
   void deleteCoupon(Coupon coupon) async {
-  // Delete coupon from database
-  await CouponDatabaseHelper.deleteCoupon(coupon.id!);
-  // Reload coupons after deletion
-  _loadCoupons();
-}
-
+    try {
+      await _couponService.deleteCoupon(coupon.code);
+      _loadCoupons(); // Reload coupons after deletion
+    } catch (e) {
+      print('Error deleting coupon: $e');
+    }
+  }
 
   Future<void> _loadCoupons() async {
-  // Retrieve coupons from the database
-  List<Coupon> loadedCoupons = await CouponDatabaseHelper.getCoupons();
-  // Update the state with the loaded coupons
-  setState(() {
-    coupons = loadedCoupons;
-  });
-}
+    try {
+      List<Coupon> loadedCoupons = await _couponService.getAllCoupons();
+      setState(() {
+        coupons = loadedCoupons;
+      });
+    } catch (e) {
+      print('Error loading coupons: $e');
+    }
+  }
 
   void verifyCoupon(Coupon coupon) {
-  // Your verification logic here
-  // For example:
-  print('Coupon Verified: ${coupon.code}');
-}
-
+    print('Coupon Verified: ${coupon.code}');
+    // Add your verification logic here
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,31 +113,29 @@ class _RestaurantCouponPageState extends State
         title: Row(
           children: [
             Image.asset(
-              'assets/images/Logo.png',  // Path to your image file
-              height: 32,  // Adjust height as needed
+              'assets/images/Logo.png',
+              height: 32,
             ),
-            SizedBox(width: 8),  // Optional spacing between image and title
+            SizedBox(width: 8),
             Text(
-              'Davis Deals',  // Custom title
+              'Davis Deals',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        backgroundColor: Color(0xFFA8DAF9),  // Set the background color
+        backgroundColor: Color(0xFFA8DAF9),
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),  // Adjust the right-side buffer as needed
+            padding: EdgeInsets.only(right: 16.0),
             child: IconButton(
               icon: Icon(Icons.search),
               onPressed: () {
-                //NOTHING YET
+                // Handle search action
               },
             ),
           ),
         ],
       ),
-
- 
       body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -127,98 +162,97 @@ class _RestaurantCouponPageState extends State
     );
   }
 
+  Future<void> _showAddCouponDialog(BuildContext context) async {
+    String couponCode = '';
+    int discount = 0;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add Coupon'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                TextField(
+                  decoration: InputDecoration(labelText: 'Coupon Code'),
+                  onChanged: (value) {
+                    couponCode = value;
+                  },
+                ),
+                TextField(
+                  decoration: InputDecoration(labelText: 'Discount Percentage'),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    discount = int.tryParse(value) ?? 0;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Add'),
+              onPressed: () async {
+                if (couponCode.isNotEmpty && discount > 0) {
+                  try {
+                    await _couponService.addCoupon(couponCode, 'Discount of $discount%', 1);
+                    Navigator.of(context).pop();
+                    _loadCoupons();
+                  } catch (e) {
+                    print('Error adding coupon: $e');
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Please enter valid coupon details.'),
+                    duration: Duration(seconds: 2),
+                  ));
+                }
+              },
+            ),
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildBody() {
   switch (_currentIndex) {
     case 0:
       return CouponGrid(
-        coupons: coupons, // Pass the list of Coupon objects
+        key: UniqueKey(), // Use UniqueKey to force rebuild on state change
+        coupons: coupons,
         onPressed: verifyCoupon,
         onDeletePressed: deleteCoupon,
       );
-    case 1: 
+    case 1:
       return MapScreen();
-    case 2:
-      return MyHomePage(title:"fslakjfljsdalf");
-    // You can add cases for other pages if needed
+    // Add cases for other pages if needed
     default:
       return SizedBox.shrink();
   }
 }
-
-
-Future<void> _showAddCouponDialog(BuildContext context) async {
-  String couponCode = '';
-  int discount = 0;
-
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: true,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Add Coupon'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              TextField(
-                decoration: InputDecoration(labelText: 'Coupon Code'),
-                onChanged: (value) {
-                  couponCode = value;
-                },
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: 'Discount Percentage'),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  discount = int.tryParse(value) ?? 0;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Add'),
-            onPressed: () async {
-              if (couponCode.isNotEmpty && discount > 0) {
-                // Insert coupon into database
-                await CouponDatabaseHelper.insertCoupon(
-                  Coupon(
-                    id: _nextId++,
-                    code: couponCode,
-                    description: 'Discount of $discount%',
-                    restaurantID: 1, // Assuming restaurantID is 1
-                  ),
-                );
-                Navigator.of(context).pop();
-                _loadCoupons();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Please enter valid coupon details.'),
-                  duration: Duration(seconds: 2),
-                ));
-              }
-            },
-          ),
-          TextButton(
-            child: Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
 }
 
 class CouponGrid extends StatelessWidget {
-  final List<Coupon> coupons; // Updated to use Coupon objects
-  final Function(Coupon) onPressed; // Updated to pass Coupon object instead of string
-  final Function(Coupon) onDeletePressed; // Callback for delete button
+  final List<Coupon> coupons;
+  final Function(Coupon) onPressed;
+  final Function(Coupon) onDeletePressed;
 
-  const CouponGrid({Key? key, required this.coupons, required this.onPressed, required this.onDeletePressed}) : super(key: key);
+  // Remove the const keyword from the constructor
+  CouponGrid({
+    Key? key,
+    required this.coupons,
+    required this.onPressed,
+    required this.onDeletePressed,
+  }) : super(key: key ?? UniqueKey());
 
   @override
   Widget build(BuildContext context) {
@@ -230,14 +264,14 @@ class CouponGrid extends StatelessWidget {
       ),
       itemCount: coupons.length,
       itemBuilder: (context, index) {
-        final coupon = coupons[index]; // Get the Coupon object at the current index
+        final coupon = coupons[index];
         return CouponTile(
-          coupon: coupon, // Pass the Coupon object to CouponTile
+          coupon: coupon,
           onPressed: () {
-            onPressed(coupon); // Pass the Coupon object to the onPressed callback
+            onPressed(coupon);
           },
           onDeletePressed: () {
-            onDeletePressed(coupon); // Pass the Coupon object to the onDeletePressed callback
+            onDeletePressed(coupon);
           },
         );
       },
@@ -245,13 +279,13 @@ class CouponGrid extends StatelessWidget {
   }
 }
 
-
 class CouponTile extends StatelessWidget {
-  final Coupon coupon; // Updated to use Coupon object instead of string and int
+  final Coupon coupon;
   final VoidCallback onPressed;
-  final VoidCallback onDeletePressed; // Callback for delete button
+  final VoidCallback onDeletePressed;
 
-  const CouponTile({Key? key, required this.coupon, required this.onPressed, required this.onDeletePressed}) : super(key: key);
+  const CouponTile({Key? key, required this.coupon, required this.onPressed, required this.onDeletePressed})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -266,22 +300,22 @@ class CouponTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Coupon Code: ${coupon.code}', // Accessing code property of the Coupon object
+                'Coupon Code: ${coupon.code}',
                 style: TextStyle(fontSize: 16.0),
               ),
               SizedBox(height: 8.0),
               Text(
-                'Description: ${coupon.description}', // Accessing description property of the Coupon object
+                'Description: ${coupon.description}',
                 style: TextStyle(fontSize: 14.0, color: Colors.grey),
               ),
               SizedBox(height: 8.0),
               Text(
-                'Restaurant ID: ${coupon.restaurantID}', // Accessing restaurantID property of the Coupon object
+                'Restaurant ID: ${coupon.restaurantID}',
                 style: TextStyle(fontSize: 14.0, color: Colors.grey),
               ),
               SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: onDeletePressed, // Trigger delete callback
+                onPressed: onDeletePressed,
                 child: Text('Delete'),
               ),
             ],
