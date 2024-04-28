@@ -19,24 +19,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class RestaurantCouponPage extends StatelessWidget {
+class RestaurantCouponPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Restaurant Coupons'),
-      ),
-      body: CouponList(),
-    );
-  }
+  _RestaurantCouponPageState createState() => _RestaurantCouponPageState();
 }
 
-class CouponList extends StatefulWidget {
-  @override
-  _CouponListState createState() => _CouponListState();
-}
+class _RestaurantCouponPageState extends State
+{
+  int _currentIndex = 0;
 
-class _CouponListState extends State<CouponList> {
+  final List<Map<String, dynamic>> _pages = [
+    {'title': 'Coupons', 'icon': Icons.local_offer},
+    {'title': 'Map', 'icon': Icons.map},
+    {'title': 'Login', 'icon': Icons.login},
+  ];
+
   List<String> coupons = [];
 
   @override
@@ -60,6 +57,50 @@ class _CouponListState extends State<CouponList> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_pages[_currentIndex]['title']),
+      ),
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: _pages.map((page) {
+          return BottomNavigationBarItem(
+            icon: Icon(page['icon'] as IconData),
+            label: page['title'] as String,
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    switch (_currentIndex) {
+      case 0:
+        return CouponList(coupons: coupons, onPressed: verifyCoupon);
+      case 1:
+        return MapScreen();
+      case 2:
+        return LoginScreen();
+      default:
+        return SizedBox.shrink();
+    }
+  }
+}
+
+class CouponList extends StatelessWidget {
+  final List<String> coupons;
+  final Function(String) onPressed;
+
+  const CouponList({Key? key, required this.coupons, required this.onPressed}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: coupons.length,
       itemBuilder: (context, index) {
@@ -67,7 +108,7 @@ class _CouponListState extends State<CouponList> {
         return CouponTile(
           couponCode: couponCode,
           onPressed: () {
-            verifyCoupon(couponCode);
+            onPressed(couponCode);
           },
         );
       },
@@ -75,22 +116,11 @@ class _CouponListState extends State<CouponList> {
   }
 }
 
-class CouponTile extends StatefulWidget {
+class CouponTile extends StatelessWidget {
   final String couponCode;
   final VoidCallback onPressed;
 
-  const CouponTile({
-    Key? key,
-    required this.couponCode,
-    required this.onPressed,
-  }) : super(key: key);
-
-  @override
-  _CouponTileState createState() => _CouponTileState();
-}
-
-class _CouponTileState extends State<CouponTile> {
-  bool isVerified = false;
+  const CouponTile({Key? key, required this.couponCode, required this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -98,19 +128,105 @@ class _CouponTileState extends State<CouponTile> {
       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: ListTile(
         title: Text(
-          'Coupon Code: ${widget.couponCode}',
+          'Coupon Code: $couponCode',
           style: TextStyle(fontSize: 16.0),
         ),
         trailing: InkWell(
-          onTap: () {
-            setState(() {
-              isVerified = !isVerified;
-            });
-            widget.onPressed(); // Call onPressed callback when verified status changes
-          },
-          child: isVerified
-              ? Icon(Icons.check_circle, color: Colors.green)
-              : Icon(Icons.check_circle_outline),
+          onTap: onPressed,
+          child: Icon(Icons.check_circle_outline),
+        ),
+      ),
+    );
+  }
+}
+
+class MapScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('Map Screen'),
+    );
+  }
+}
+
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State
+{
+  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  void _login() {
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Simulated authentication process (replace with actual logic)
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    // Simulated validation (replace with actual validation logic)
+    bool isValidCredentials = validateCredentials(username, password);
+
+    if (isValidCredentials) {
+      // Print "login valid" upon successful validation
+      print('Login valid');
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      // Show error message or toast for invalid credentials
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Invalid username or password'),
+        backgroundColor: Colors.red,
+      ));
+    }
+  }
+
+  bool validateCredentials(String username, String password) {
+    // Simulated validation (replace with actual validation logic)
+    return username == 'admin' && password == 'password';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _usernameController,
+                decoration: InputDecoration(
+                  labelText: 'Username',
+                ),
+              ),
+              SizedBox(height: 16.0),
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                ),
+                obscureText: true,
+              ),
+              SizedBox(height: 24.0),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _login,
+                child: _isLoading
+                    ? CircularProgressIndicator()
+                    : Text('Login'),
+              ),
+            ],
+          ),
         ),
       ),
     );
