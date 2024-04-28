@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as latLng;
+import 'package:latlong2/latlong.dart' as lat_lng;
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -11,12 +11,12 @@ class MapScreen extends StatelessWidget {
         children: [
           FlutterMap(
             options: MapOptions(
-              initialCenter: latLng.LatLng(51.509364, -0.128928),
-              initialZoom: 3.2,
+              initialCenter: lat_lng.LatLng(38.5449, -121.7405),
+              initialZoom: 12.0,
             ),
             children: [
               TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png',
                   userAgentPackageName: 'com.example.app',
               ),
             ],
@@ -26,3 +26,4 @@ class MapScreen extends StatelessWidget {
     );
   }
 }
+
