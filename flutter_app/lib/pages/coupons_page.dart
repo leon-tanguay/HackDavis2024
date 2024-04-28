@@ -6,8 +6,11 @@ import 'map_page.dart';
 import 'login_page.dart';
 import '../widgets/bottom_bar.dart';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import '../widgets/coupon_db_helper.dart';
+import '../widgets/coupon.dart';
+
+
 
 class RestaurantCouponPage extends StatefulWidget {
   @override
@@ -17,6 +20,7 @@ class RestaurantCouponPage extends StatefulWidget {
 class _RestaurantCouponPageState extends State
 {
   int _currentIndex = 0;
+  static int _nextId = 0;
 
   final List<Map<String, dynamic>> _pages = [
     {'title': 'Coupons', 'icon': Icons.local_offer},
@@ -98,61 +102,70 @@ class _RestaurantCouponPageState extends State
     }
   }
 
-  Future<void> _showAddCouponDialog(BuildContext context) async {
-    String couponCode = '';
-    int discount = 0;
+Future<void> _showAddCouponDialog(BuildContext context) async {
+  String couponCode = '';
+  int discount = 0;
 
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add Coupon'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                TextField(
-                  decoration: InputDecoration(labelText: 'Coupon Code'),
-                  onChanged: (value) {
-                    couponCode = value;
-                  },
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Discount Percentage'),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    discount = int.tryParse(value) ?? 0;
-                  },
-                ),
-              ],
-            ),
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Add Coupon'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              TextField(
+                decoration: InputDecoration(labelText: 'Coupon Code'),
+                onChanged: (value) {
+                  couponCode = value;
+                },
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: 'Discount Percentage'),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  discount = int.tryParse(value) ?? 0;
+                },
+              ),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Add'),
-              onPressed: () {
-                if (couponCode.isNotEmpty && discount > 0) {
-                  addCoupon(couponCode, discount);
-                  Navigator.of(context).pop();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Please enter valid coupon details.'),
-                    duration: Duration(seconds: 2),
-                  ));
-                }
-              },
-            ),
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Add'),
+            onPressed: () async {
+              if (couponCode.isNotEmpty && discount > 0) {
+                // Insert coupon into database
+                await CouponDatabaseHelper.insertCoupon(
+                  Coupon(
+                    id: _nextId++,
+                    code: couponCode,
+                    description: 'Discount of $discount%',
+                    restaurantID: 1, // Assuming restaurantID is 1
+                  ),
+                );
                 Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Please enter valid coupon details.'),
+                  duration: Duration(seconds: 2),
+                ));
+              }
+            },
+          ),
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }
 
 class CouponGrid extends StatelessWidget {

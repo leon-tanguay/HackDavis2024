@@ -3,6 +3,7 @@ class Coupon {
   final String code;
   final String description;
   final int restaurantID;
+  
 
   Coupon({
     this.id,
