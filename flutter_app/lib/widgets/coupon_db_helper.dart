@@ -1,12 +1,17 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'coupon.dart'; // Assuming Coupon class is defined in coupon.dart
 
 class CouponDatabaseHelper {
+
   static Future<String> _getDatabasePath() async {
     // Get the directory for storing databases
+    sqfliteFfiInit();
+    // Set the database factory to use ffi
+    databaseFactory = databaseFactoryFfi;
     final appDocumentDir = await getApplicationDocumentsDirectory();
     final databasePath = join(appDocumentDir.path, 'coupon_database.db');
     return databasePath;
@@ -56,4 +61,11 @@ class CouponDatabaseHelper {
       whereArgs: [id],
     );
   }
+
+static Future<int> getCouponsCount() async {
+    final Database db = await _openDatabase();
+    final List<Map<String, dynamic>> result = await db.rawQuery('SELECT COUNT(*) FROM coupons');
+    return Sqflite.firstIntValue(result)!; // Return the count as an integer
+  }
+
 }
