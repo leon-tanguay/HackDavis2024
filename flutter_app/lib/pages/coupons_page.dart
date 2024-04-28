@@ -88,6 +88,10 @@ class _RestaurantCouponPageState extends State
           discounts: discounts,
           onPressed: verifyCoupon,
         );
+      case 1: 
+        return MapScreen();
+      case 2:
+        return LoginScreen();
       // You can add cases for other pages if needed
       default:
         return SizedBox.shrink();
