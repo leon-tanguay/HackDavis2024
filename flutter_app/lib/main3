@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';  // Import from latlong2
 
 void main() {
   runApp(MyApp());
@@ -145,120 +143,136 @@ class CouponTile extends StatelessWidget {
 class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Map'),
-      ),
-      body: FlutterMap(
-        options: MapOptions(
-          initialCenter: LatLng(38.5449, -121.7405), // Coordinates of Davis, California
-          initialZoom: 12.0,
-        ),
-        children: [
-          TileLayerOptions(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            subdomains: ['a', 'b', 'c'],
-          ),
-          MarkerLayerOptions(
-            markers: [
-              Marker(
-                width: 80.0,
-                height: 80.0,
-                point: LatLng(38.5449, -121.7405), // Coordinates of Davis, California
-                builder: (ctx) => Container(
-                  child: Icon(
-                    Icons.location_pin,
-                    size: 40.0,
-                    color: Colors.red,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return Center(
+      child: Text('Map Screen'),
     );
   }
 }
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('Login Screen'),
+    );
+  }
 }
 
-class _LoginScreenState extends State
-{
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
 
-  void _login() {
-    setState(() {
-      _isLoading = true;
-    });
 
-    // Simulated authentication process (replace with actual logic)
-    String username = _usernameController.text;
-    String password = _passwordController.text;
+import 'package:flutter/material.dart';
+import 'package:english_words/english_words.dart';
 
-    // Simulated validation (replace with actual validation logic)
-    bool isValidCredentials = validateCredentials(username, password);
+void main() {
+  runApp(MyApp());
+}
 
-    if (isValidCredentials) {
-      // Print "login valid" upon successful validation
-      print('Login valid');
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-      // Show error message or toast for invalid credentials
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Invalid username or password'),
-        backgroundColor: Colors.red,
-      ));
-    }
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Restaurant Coupons',
+      theme: ThemeData(
+        primarySwatch: Colors.deepOrange,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: RestaurantCouponPage(),
+    );
   }
+}
 
-  bool validateCredentials(String username, String password) {
-    // Simulated validation (replace with actual validation logic)
-    return username == 'admin' && password == 'password';
-  }
-
+class RestaurantCouponPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: Text('Restaurant Coupons'),
       ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                ),
-                obscureText: true,
-              ),
-              SizedBox(height: 24.0),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                child: _isLoading
-                    ? CircularProgressIndicator()
-                    : Text('Login'),
-              ),
-            ],
-          ),
+      body: CouponList(),
+    );
+  }
+}
+
+class CouponList extends StatefulWidget {
+  @override
+  _CouponListState createState() => _CouponListState();
+}
+
+class _CouponListState extends State<CouponList> {
+  List<String> coupons = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Generate initial list of random coupons
+    coupons = generateCoupons(15);
+  }
+
+  List<String> generateCoupons(int count) {
+    // Generate random coupon codes
+    return List.generate(count, (index) => WordPair.random().asString.toUpperCase());
+  }
+
+  void verifyCoupon(String couponCode) {
+    // Simulate coupon verification process
+    // Here you can implement actual logic to verify the coupon code
+    // For demo purpose, we'll just print the coupon code as verified
+    print('Coupon Verified: $couponCode');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: coupons.length,
+      itemBuilder: (context, index) {
+        final couponCode = coupons[index];
+        return CouponTile(
+          couponCode: couponCode,
+          onPressed: () {
+            verifyCoupon(couponCode);
+          },
+        );
+      },
+    );
+  }
+}
+
+class CouponTile extends StatefulWidget {
+  final String couponCode;
+  final VoidCallback onPressed;
+
+  const CouponTile({
+    Key? key,
+    required this.couponCode,
+    required this.onPressed,
+  }) : super(key: key);
+
+  @override
+  _CouponTileState createState() => _CouponTileState();
+}
+
+class _CouponTileState extends State<CouponTile> {
+  bool isVerified = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: ListTile(
+        title: Text(
+          'Coupon Code: ${widget.couponCode}',
+          style: TextStyle(fontSize: 16.0),
+        ),
+        trailing: InkWell(
+          onTap: () {
+            setState(() {
+              isVerified = !isVerified;
+            });
+            widget.onPressed(); // Call onPressed callback when verified status changes
+          },
+          child: isVerified
+              ? Icon(Icons.check_circle, color: Colors.green)
+              : Icon(Icons.check_circle_outline),
         ),
       ),
     );
