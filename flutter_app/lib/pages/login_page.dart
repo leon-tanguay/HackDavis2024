@@ -91,7 +91,7 @@ Widget build(BuildContext context) {
         children: <Widget>[
           Container(
             padding: EdgeInsets.fromLTRB(15, 20, 0, 0), // Adjusted padding
-            child: Text("LOGIN PAGE",
+            child: Text("Login",
                 style: TextStyle(
                     fontSize: 40, fontWeight: FontWeight.bold)),
           ),
