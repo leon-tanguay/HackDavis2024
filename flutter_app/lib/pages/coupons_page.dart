@@ -75,8 +75,34 @@ class _RestaurantCouponPageState extends State
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_pages[_currentIndex]['title']),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/Logo.png',  // Path to your image file
+              height: 32,  // Adjust height as needed
+            ),
+            SizedBox(width: 8),  // Optional spacing between image and title
+            Text(
+              'Davis Deals',  // Custom title
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        backgroundColor: Color(0xFFA8DAF9),  // Set the background color
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),  // Adjust the right-side buffer as needed
+            child: IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                //NOTHING YET
+              },
+            ),
+          ),
+        ],
       ),
+
+ 
       body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
