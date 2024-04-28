@@ -23,8 +23,8 @@ class CouponService {
     try {
       await couponsCollection.add({
         'Code': title,
-        'description': description,
-        'restaurantID': restaurantID,
+        'Description': description,
+        'RestaurantID': restaurantID,
       });
       print('Coupon added successfully!');
     } catch (e) {
@@ -32,9 +32,9 @@ class CouponService {
     }
   }
 
-  Future<void> deleteCoupon(String couponId) async {
+  Future<void> deleteCoupon(String couponCode) async {
     try {
-      await couponsCollection.doc(couponId).delete();
+      await couponsCollection.doc(couponCode).delete();
       print('Coupon deleted successfully!');
     } catch (e) {
       print('Error deleting coupon: $e');
