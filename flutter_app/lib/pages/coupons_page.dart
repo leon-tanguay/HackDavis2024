@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart' as latLng;
 import 'map_page.dart';
 import 'login_page.dart';
 import '../widgets/bottom_bar.dart';
+import 'dart:math';
 
 class RestaurantCouponPage extends StatefulWidget {
   @override
@@ -22,13 +23,22 @@ class _RestaurantCouponPageState extends State
   ];
 
   List<String> coupons = [];
+  List<int> discounts = [];
 
   @override
   void initState() {
     super.initState();
-    // Generate initial list of random coupons
+    // Generate initial list of random coupons and discounts
     coupons = generateCoupons(15);
+    discounts = generateDiscounts(15);
   }
+
+  List<int> generateDiscounts(int count) {
+  // Generate random discount percentages
+  Random random = Random();
+  return List.generate(count, (int index) => random.nextInt(50) + 1); // Add a semicolon at the end
+}
+
 
   List<String> generateCoupons(int count) {
     // Generate random coupon codes
@@ -63,7 +73,7 @@ class _RestaurantCouponPageState extends State
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        return CouponGrid(coupons: coupons, onPressed: verifyCoupon);
+        return CouponGrid(coupons: coupons, discounts: discounts, onPressed: verifyCoupon);
       case 1:
         return MapScreen();
       case 2:
@@ -76,9 +86,10 @@ class _RestaurantCouponPageState extends State
 
 class CouponGrid extends StatelessWidget {
   final List<String> coupons;
+  final List<int> discounts;
   final Function(String) onPressed;
 
-  const CouponGrid({Key? key, required this.coupons, required this.onPressed}) : super(key: key);
+  const CouponGrid({Key? key, required this.coupons, required this.discounts, required this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,8 +102,10 @@ class CouponGrid extends StatelessWidget {
       itemCount: coupons.length,
       itemBuilder: (context, index) {
         final couponCode = coupons[index];
+        final discount = discounts[index];
         return CouponTile(
           couponCode: couponCode,
+          discount: discount,
           onPressed: () {
             onPressed(couponCode);
           },
@@ -104,9 +117,10 @@ class CouponGrid extends StatelessWidget {
 
 class CouponTile extends StatelessWidget {
   final String couponCode;
+  final int discount;
   final VoidCallback onPressed;
 
-  const CouponTile({Key? key, required this.couponCode, required this.onPressed}) : super(key: key);
+  const CouponTile({Key? key, required this.couponCode, required this.discount, required this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +130,20 @@ class CouponTile extends StatelessWidget {
         margin: EdgeInsets.all(8.0),
         child: Container(
           alignment: Alignment.center,
-          child: Text(
-            'Coupon Code: $couponCode',
-            style: TextStyle(fontSize: 16.0),
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Coupon Code: $couponCode',
+                style: TextStyle(fontSize: 16.0),
+              ),
+              SizedBox(height: 8.0),
+              Text(
+                'Discount: $discount% off',
+                style: TextStyle(fontSize: 14.0, color: Colors.grey),
+              ),
+            ],
           ),
         ),
       ),
