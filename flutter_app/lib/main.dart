@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';  // Import from latlong2
+import 'package:latlong2/latlong.dart' as latLng;
 
 void main() {
   runApp(MyApp());
