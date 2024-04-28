@@ -1,71 +1,25 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
-import 'coupon.dart'; // Assuming Coupon class is defined in coupon.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'coupon.dart';
 
 class CouponDatabaseHelper {
 
-  static Future<String> _getDatabasePath() async {
-    // Get the directory for storing databases
-    sqfliteFfiInit();
-    // Set the database factory to use ffi
-    databaseFactory = databaseFactoryFfi;
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    final databasePath = join(appDocumentDir.path, 'coupon_database.db');
-    return databasePath;
-  }
-
-  static Future<Database>_openDatabase() async {
-    final databasePath = await _getDatabasePath(); // Get the database path
-    return openDatabase(
-      databasePath,
-      onCreate: (db, version) {
-        return db.execute(
-          'CREATE TABLE coupons(id INTEGER PRIMARY KEY, code TEXT, description TEXT, restaurantID INTEGER)',
-        );
-      },
-      version: 1,
-    );
-  }
+  static final CollectionReference couponsCollection = FirebaseFirestore.instance.collection('coupons');
 
   static Future<void> insertCoupon(Coupon coupon) async {
-    final Database db = await _openDatabase();
-    await db.insert(
-      'coupons',
-      coupon.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await couponsCollection.add(coupon.toFirestore());
   }
 
   static Future<List<Coupon>> getCoupons() async {
-    final Database db = await _openDatabase();
-    final List<Map<String, dynamic>> maps = await db.query('coupons');
-
-    return List.generate(maps.length, (i) {
-      return Coupon(
-        id: maps[i]['id'],
-        code: maps[i]['code'],
-        description: maps[i]['description'],
-        restaurantID: maps[i]['restaurantID'],
-      );
-    });
+    QuerySnapshot querySnapshot = await couponsCollection.get();
+    return querySnapshot.docs.map((doc) => Coupon.fromFirestore(doc)).toList();
   }
 
-  static Future<void> deleteCoupon(int id) async {
-    final Database db = await _openDatabase();
-    await db.delete(
-      'coupons',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+  static Future<void> deleteCoupon(String id) async {
+    await couponsCollection.doc(id).delete();
   }
 
-static Future<int> getCouponsCount() async {
-    final Database db = await _openDatabase();
-    final List<Map<String, dynamic>> result = await db.rawQuery('SELECT COUNT(*) FROM coupons');
-    return Sqflite.firstIntValue(result)!; // Return the count as an integer
+  static Future<int> getCouponsCount() async {
+    QuerySnapshot querySnapshot = await couponsCollection.get();
+    return querySnapshot.size;
   }
-
 }
