@@ -63,7 +63,7 @@ class _RestaurantCouponPageState extends State
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        return CouponList(coupons: coupons, onPressed: verifyCoupon);
+        return CouponGrid(coupons: coupons, onPressed: verifyCoupon);
       case 1:
         return MapScreen();
       case 2:
@@ -74,15 +74,20 @@ class _RestaurantCouponPageState extends State
   }
 }
 
-class CouponList extends StatelessWidget {
+class CouponGrid extends StatelessWidget {
   final List<String> coupons;
   final Function(String) onPressed;
 
-  const CouponList({Key? key, required this.coupons, required this.onPressed}) : super(key: key);
+  const CouponGrid({Key? key, required this.coupons, required this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // Number of columns in the grid
+        crossAxisSpacing: 8.0, // Spacing between columns
+        mainAxisSpacing: 8.0, // Spacing between rows
+      ),
       itemCount: coupons.length,
       itemBuilder: (context, index) {
         final couponCode = coupons[index];
@@ -105,16 +110,16 @@ class CouponTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: ListTile(
-        title: Text(
-          'Coupon Code: $couponCode',
-          style: TextStyle(fontSize: 16.0),
-        ),
-        trailing: InkWell(
-          onTap: onPressed,
-          child: Icon(Icons.check_circle_outline),
+    return InkWell(
+      onTap: onPressed,
+      child: Card(
+        margin: EdgeInsets.all(8.0),
+        child: Container(
+          alignment: Alignment.center,
+          child: Text(
+            'Coupon Code: $couponCode',
+            style: TextStyle(fontSize: 16.0),
+          ),
         ),
       ),
     );
