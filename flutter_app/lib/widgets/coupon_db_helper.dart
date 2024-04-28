@@ -1,15 +1,21 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'coupon.dart'; // Assuming Coupon class is defined in coupon.dart
 
 class CouponDatabaseHelper {
-  static Future<Database> _openDatabase() async {
-    final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'coupongie_database.db');
+  static Future<String> _getDatabasePath() async {
+    // Get the directory for storing databases
+    final appDocumentDir = await getApplicationDocumentsDirectory();
+    final databasePath = join(appDocumentDir.path, 'coupon_database.db');
+    return databasePath;
+  }
 
+  static Future<Database>_openDatabase() async {
+    final databasePath = await _getDatabasePath(); // Get the database path
     return openDatabase(
-      path,
+      databasePath,
       onCreate: (db, version) {
         return db.execute(
           'CREATE TABLE coupons(id INTEGER PRIMARY KEY, code TEXT, description TEXT, restaurantID INTEGER)',
