@@ -16,13 +16,13 @@ class Coupon {
 }
 
 class CouponService {
-  final CollectionReference couponsCollection =
+  CollectionReference couponsCollection =
       FirebaseFirestore.instance.collection('Coupons');
 
-  Future<void> addCoupon(String title, String description, int restaurantID) async {
+  Future<void> addCoupon(String code, String description, int restaurantID) async {
     try {
       await couponsCollection.add({
-        'Code': title,
+        'Code': code,
         'Description': description,
         'RestaurantID': restaurantID,
       });
@@ -41,21 +41,18 @@ class CouponService {
     }
   }
 
-  Future<List<Coupon>> getAllCoupons() async {
-    try {
-      QuerySnapshot querySnapshot = await couponsCollection.get();
-      return querySnapshot.docs.map((doc) {
-        return Coupon(
-          code: doc['Code'],
-          description: doc['description'],
-          restaurantID: doc['restaurantID'],
-        );
-      }).toList();
-    } catch (e) {
-      print('Error getting coupons: $e');
-      return [];
-    }
+  Stream<List<Coupon>> streamAllCoupons() {
+  return couponsCollection.snapshots().map((snapshot) {
+    return snapshot.docs.map((doc) {
+      return Coupon(
+        code: doc['Code'],
+        description: doc['Description'],
+        restaurantID: doc['RestaurantID'],
+      );
+    }).toList();
+  });
   }
+
 }
 
 class RestaurantCouponPage extends StatefulWidget {
@@ -90,15 +87,16 @@ class _RestaurantCouponPageState extends State {
     }
   }
 
-  Future<void> _loadCoupons() async {
-    try {
-      List<Coupon> loadedCoupons = await _couponService.getAllCoupons();
+  void _loadCoupons() {
+    setState(() {
+      coupons = []; // Clear the list initially
+    });
+    
+    _couponService.streamAllCoupons().listen((couponList) {
       setState(() {
-        coupons = loadedCoupons;
+        coupons = couponList;
       });
-    } catch (e) {
-      print('Error loading coupons: $e');
-    }
+    });
   }
 
   void verifyCoupon(Coupon coupon) {
@@ -200,6 +198,9 @@ class _RestaurantCouponPageState extends State {
                     await _couponService.addCoupon(couponCode, 'Discount of $discount%', 1);
                     Navigator.of(context).pop();
                     _loadCoupons();
+                    setState(() {
+                      
+                    });
                   } catch (e) {
                     print('Error adding coupon: $e');
                   }
@@ -226,11 +227,24 @@ class _RestaurantCouponPageState extends State {
   Widget _buildBody() {
   switch (_currentIndex) {
     case 0:
-      return CouponGrid(
-        key: UniqueKey(), // Use UniqueKey to force rebuild on state change
-        coupons: coupons,
-        onPressed: verifyCoupon,
-        onDeletePressed: deleteCoupon,
+      return StreamBuilder<List<Coupon>>(
+        stream: _couponService.streamAllCoupons(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+          // Display the GridView with the latest coupon data
+          List<Coupon> coupons = snapshot.data ?? [];
+          return CouponGrid(
+            key: UniqueKey(), // Use UniqueKey to force rebuild on state change
+            coupons: coupons,
+            onDeletePressed: deleteCoupon,
+            onPressed: verifyCoupon
+          );
+        },
       );
     case 1:
       return MapScreen();

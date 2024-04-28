@@ -11,17 +11,20 @@ import 'package:firebase_core/firebase_core.dart';
 import 'pages/signup_page.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-bool _isLoading = false;
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options:FirebaseOptions(
-      apiKey: 'AIzaSyAbrzt7NugglF_H1OqP45Y1YArsT4yHP2c', 
-      appId: '1:694595341378:android:eb78827fc53db29c88f1db', 
-      messagingSenderId: '', 
-      projectId: '')
-    );
+      apiKey: "AIzaSyAbrzt7NugglF_H1OqP45Y1YArsT4yHP2c",
+      authDomain: "hackdavis24-59799.firebaseapp.com",
+      projectId: "hackdavis24-59799",
+      storageBucket: "hackdavis24-59799.appspot.com",
+      messagingSenderId: "694595341378",
+      appId: "1:694595341378:web:022adcd01483c09c88f1db",
+      measurementId: "G-62DQC040GL"
+    )
+  );
   runApp(MyApp());
 }
 
