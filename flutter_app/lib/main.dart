@@ -1,26 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as latLng;
-import 'pages/coupons_page.dart';
-import 'pages/map_page.dart';
-import 'pages/login_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'pages/signup_page.dart';
+import 'package:namer_app/pages/coupons_page.dart';
+import 'package:namer_app/pages/signup_page.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-bool _isLoading = false;
-
-void main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options:FirebaseOptions(
-      apiKey: 'AIzaSyAbrzt7NugglF_H1OqP45Y1YArsT4yHP2c', 
-      appId: '1:694595341378:android:eb78827fc53db29c88f1db', 
-      messagingSenderId: '', 
-      projectId: '')
-    );
+void main() {
   runApp(MyApp());
 }
 
@@ -28,18 +10,77 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Restaurant Coupons',
-      theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const MyHomePage(title: 'Flutter Demoooooooo'),
-      //LoginScreen(),
-      debugShowCheckedModeBanner: false,
-      routes: <String, WidgetBuilder>{
-        '/signup': (BuildContext context) => new SignupPage(),
-        '/dashboard': (BuildContext context) => new RestaurantCouponPage(),
+      title: 'Navigation Demo',
+      initialRoute: '/', 
+      routes: {
+        '/': (context) => FirstPage(),
+        '/choice1': (context) => RestaurantCouponPage(),
+        '/choice2': (context) => SignupPage(),
       },
+    );
+  }
+}
+
+class FirstPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Welcome'),
+      ),
+      body: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/choice1');
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/Student.png',
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Student',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/choice2');
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/Business.png',
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Business',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
