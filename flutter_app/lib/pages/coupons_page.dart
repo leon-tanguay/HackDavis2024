@@ -21,7 +21,7 @@ class CouponService {
 
   Future<void> addCoupon(String code, String description, int restaurantID) async {
     try {
-      await couponsCollection.add({
+      await couponsCollection.doc(code).set({
         'Code': code,
         'Description': description,
         'RestaurantID': restaurantID,
