@@ -8,8 +8,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_map: ^0.14.0  # Use a version that supports null safety
-  latlong2: ^0.9.1       # Update to version compatible with null safety
+  flutter_map: ^6.1.0  # Use a version that supports null safety
+  latlong2: ^0.8.2       # Update to version compatible with null safety
 
   english_words: ^4.0.0
   provider: ^6.0.0

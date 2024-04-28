@@ -150,8 +150,8 @@ class MapScreen extends StatelessWidget {
         children: [
           FlutterMap(
             options: MapOptions(
-              center: LatLng(51.509364, -0.128928),
-              zoom: 3.2,
+              initialCenter: LatLng(51.509364, -0.128928),
+              initialZoom: 3.2,
             ),
             children: [
               TileLayer(
