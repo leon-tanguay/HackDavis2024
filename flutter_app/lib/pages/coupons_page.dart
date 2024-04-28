@@ -7,6 +7,8 @@ import 'login_page.dart';
 import '../widgets/bottom_bar.dart';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+
 class RestaurantCouponPage extends StatefulWidget {
   @override
   _RestaurantCouponPageState createState() => _RestaurantCouponPageState();
@@ -28,21 +30,6 @@ class _RestaurantCouponPageState extends State
   @override
   void initState() {
     super.initState();
-    // Generate initial list of random coupons and discounts
-    coupons = generateCoupons(15);
-    discounts = generateDiscounts(15);
-  }
-
-  List<int> generateDiscounts(int count) {
-  // Generate random discount percentages
-  Random random = Random();
-  return List.generate(count, (int index) => random.nextInt(50) + 1); // Add a semicolon at the end
-}
-
-
-  List<String> generateCoupons(int count) {
-    // Generate random coupon codes
-    return List.generate(count, (index) => WordPair.random().asString.toUpperCase());
   }
 
   void verifyCoupon(String couponCode) {
@@ -52,6 +39,14 @@ class _RestaurantCouponPageState extends State
     print('Coupon Verified: $couponCode');
   }
 
+  void addCoupon(String couponCode, int discount) {
+    // Add the new coupon to the list
+    setState(() {
+      coupons.add(couponCode);
+      discounts.add(discount);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,28 +54,99 @@ class _RestaurantCouponPageState extends State
         title: Text(_pages[_currentIndex]['title']),
       ),
       body: _buildBody(),
-      bottomNavigationBar: BottomBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
+        items: _pages.map((page) {
+          return BottomNavigationBarItem(
+            icon: Icon(page['icon']),
+            label: page['title'],
+          );
+        }).toList(),
       ),
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                _showAddCouponDialog(context);
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
     );
   }
 
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        return CouponGrid(coupons: coupons, discounts: discounts, onPressed: verifyCoupon);
-      case 1:
-        return MapScreen();
-      case 2:
-        return LoginScreen();
+        return CouponGrid(
+          coupons: coupons,
+          discounts: discounts,
+          onPressed: verifyCoupon,
+        );
+      // You can add cases for other pages if needed
       default:
         return SizedBox.shrink();
     }
+  }
+
+  Future<void> _showAddCouponDialog(BuildContext context) async {
+    String couponCode = '';
+    int discount = 0;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add Coupon'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                TextField(
+                  decoration: InputDecoration(labelText: 'Coupon Code'),
+                  onChanged: (value) {
+                    couponCode = value;
+                  },
+                ),
+                TextField(
+                  decoration: InputDecoration(labelText: 'Discount Percentage'),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    discount = int.tryParse(value) ?? 0;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (couponCode.isNotEmpty && discount > 0) {
+                  addCoupon(couponCode, discount);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Please enter valid coupon details.'),
+                    duration: Duration(seconds: 2),
+                  ));
+                }
+              },
+            ),
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -95,9 +161,9 @@ class CouponGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // Number of columns in the grid
-        crossAxisSpacing: 8.0, // Spacing between columns
-        mainAxisSpacing: 8.0, // Spacing between rows
+        crossAxisCount: 3,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
       ),
       itemCount: coupons.length,
       itemBuilder: (context, index) {
