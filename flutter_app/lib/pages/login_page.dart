@@ -1,189 +1,265 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as latLng;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'coupons_page.dart';
-import 'student_page.dart';
+import './map_page.dart';
 
+class Coupon {
+  final String code;
+  final String description;
+  final int restaurantID;
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  Coupon({
+    required this.code,
+    required this.description,
+    required this.restaurantID,
+  });
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isLoading = false;
+class CouponService {
+  CollectionReference couponsCollection =
+      FirebaseFirestore.instance.collection('Coupons');
 
-  void _signIn() async {
-    setState(() {
-      _isLoading = true; // Start loading
-    });
-
+  Future<void> addCoupon(String code, String description, int restaurantID) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-      User? user = userCredential.user;
-
-      if (user != null) {
-        // Navigate to RestaurantCouponPage on successful sign-in
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => RestaurantCouponPage()),
-        );
-      } else {
-        // Handle sign-in failure
-        // You can set an error state or show a message to the user
-      }
-    } catch (e) {
-      // Handle sign-in error
-      // You can set an error state or show a message to the user
-      print("Sign-in error: $e");
-    } finally {
-      setState(() {
-        _isLoading = false; // Stop loading regardless of the outcome
+      await couponsCollection.doc(code).set({
+        'Code': code,
+        'Description': description,
+        'RestaurantID': restaurantID,
       });
+      print('Coupon added successfully!');
+    } catch (e) {
+      print('Error adding coupon: $e');
     }
   }
 
+  Future<void> deleteCoupon(String couponCode) async {
+    try {
+      await couponsCollection.doc(couponCode).delete();
+      print('Coupon deleted successfully!');
+    } catch (e) {
+      print('Error deleting coupon: $e');
+    }
+  }
+
+  Stream<List<Coupon>> streamAllCoupons() {
+  return couponsCollection.snapshots().map((snapshot) {
+    return snapshot.docs.map((doc) {
+      return Coupon(
+        code: doc['Code'],
+        description: doc['Description'],
+        restaurantID: doc['RestaurantID'],
+      );
+    }).toList();
+  });
+  }
+
+}
+
+class StudentPage extends StatefulWidget {
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Row(
-        children: [
-          Image.asset(
-            'assets/images/Logo.png',
-            height: 32,
-          ),
-          SizedBox(width: 8),
-          Text(
-            'Davis Deals',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  _RestaurantCouponPageState createState() => _RestaurantCouponPageState();
+}
+
+class _RestaurantCouponPageState extends State {
+  int _currentIndex = 0;
+
+  final List<Map<String, dynamic>> _pages = [
+    {'title': 'Coupons', 'icon': Icons.local_offer},
+    {'title': 'Map', 'icon': Icons.map},
+  ];
+
+  List<Coupon> coupons = [];
+
+  final CouponService _couponService = CouponService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCoupons();
+  }
+
+  void deleteCoupon(Coupon coupon) async {
+    try {
+      await _couponService.deleteCoupon(coupon.code);
+      _loadCoupons(); // Reload coupons after deletion
+    } catch (e) {
+      print('Error deleting coupon: $e');
+    }
+  }
+
+  void _loadCoupons() {
+    setState(() {
+      coupons = []; // Clear the list initially
+    });
+    
+    _couponService.streamAllCoupons().listen((couponList) {
+      setState(() {
+        coupons = couponList;
+      });
+    });
+  }
+
+  void verifyCoupon(Coupon coupon) {
+    print('Coupon Verified: ${coupon.code}');
+    // Add your verification logic here
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/Logo.png',
+              height: 32,
+            ),
+            SizedBox(width: 8),
+            Text(
+              'Davis Deals',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        backgroundColor: Color(0xFFA8DAF9),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                // Handle search action
+              },
+            ),
           ),
         ],
       ),
-      backgroundColor: Color(0xFFA8DAF9),
-      actions: [
-        Padding(
-          padding: EdgeInsets.only(right: 16.0),
-          child: IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              // Handle search action
-            },
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: _pages.map((page) {
+          return BottomNavigationBarItem(
+            icon: Icon(page['icon']),
+            label: page['title'],
+          );
+        }).toList(),
+      )
+    );
+  }
+
+
+  Widget _buildBody() {
+  switch (_currentIndex) {
+    case 0:
+      return StreamBuilder<List<Coupon>>(
+        stream: _couponService.streamAllCoupons(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+          // Display the GridView with the latest coupon data
+          List<Coupon> coupons = snapshot.data ?? [];
+          return CouponGrid(
+            key: UniqueKey(), // Use UniqueKey to force rebuild on state change
+            coupons: coupons,
+            onDeletePressed: deleteCoupon,
+            onPressed: verifyCoupon
+          );
+        },
+      );
+    case 1:
+      return MapScreen();
+    // Add cases for other pages if needed
+    default:
+      return SizedBox.shrink();
+  }
+}
+}
+
+class CouponGrid extends StatelessWidget {
+  final List<Coupon> coupons;
+  final Function(Coupon) onPressed;
+  final Function(Coupon) onDeletePressed;
+
+  // Remove the const keyword from the constructor
+  CouponGrid({
+    Key? key,
+    required this.coupons,
+    required this.onPressed,
+    required this.onDeletePressed,
+  }) : super(key: key ?? UniqueKey());
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
+      ),
+      itemCount: coupons.length,
+      itemBuilder: (context, index) {
+        final coupon = coupons[index];
+        return CouponTile(
+          coupon: coupon,
+          onPressed: () {
+            onPressed(coupon);
+          },
+          onDeletePressed: () {
+            onDeletePressed(coupon);
+          },
+        );
+      },
+    );
+  }
+}
+
+class CouponTile extends StatelessWidget {
+  final Coupon coupon;
+  final VoidCallback onPressed;
+  final VoidCallback onDeletePressed;
+
+  const CouponTile({Key? key, required this.coupon, required this.onPressed, required this.onDeletePressed})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      child: Card(
+        margin: EdgeInsets.all(8.0),
+        child: Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Coupon Code: ${coupon.code}',
+                style: TextStyle(fontSize: 16.0),
+              ),
+              SizedBox(height: 8.0),
+              Text(
+                'Description: ${coupon.description}',
+                style: TextStyle(fontSize: 14.0, color: Colors.grey),
+              ),
+              SizedBox(height: 8.0),
+              Text(
+                'Restaurant ID: ${coupon.restaurantID}',
+                style: TextStyle(fontSize: 14.0, color: Colors.grey),
+              ),
+            ],
           ),
         ),
-      ],
-    ),
-    body: SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.fromLTRB(15, 20, 0, 0), // Adjusted padding
-            child: Text("Login",
-                style: TextStyle(
-                    fontSize: 40, fontWeight: FontWeight.bold)),
-          ),
-          Container(
-            padding: EdgeInsets.only(top: 35, left: 20, right: 30),
-            child: Column(
-              children: <Widget>[
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                      labelText: 'EMAIL',
-                      labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                      focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green))),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                      labelText: 'PASSWORD',
-                      labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                      focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green))),
-                ),
-                SizedBox(
-                  height: 40,
-                ),
-                Material(
-                  borderRadius: BorderRadius.circular(20),
-                  shadowColor: Colors.greenAccent,
-                  color: Colors.black,
-                  elevation: 7,
-                  child: InkWell(
-                    onTap: _signIn, // Call _signIn method on tap
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 40,
-                      child: Text(
-                        'LOGIN',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Montserrat',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 15),
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/signup');
-                  },
-                  child: Text(
-                    "Don't have an account yet? Sign up!",
-                    style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontFamily: 'Montserrat',
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline),
-                  ),
-                ),
-                SizedBox(height: 15),
-                InkWell(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => StudentPage()),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(12.0),
-                    child: Text('Go to Student Page'),
-                  ),
-                )
-              ],
-            ),
-          )
-        ],
       ),
-    ),
-  );
+    );
+  }
 }
-
-}
-
